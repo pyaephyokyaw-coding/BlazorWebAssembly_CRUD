@@ -1,0 +1,18 @@
+﻿@page "/product"
+
+<PageTitle>Product</PageTitle>
+
+<h1>Product</h1>
+
+<p role="status">Total Products: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Create Product</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
