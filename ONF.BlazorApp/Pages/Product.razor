@@ -64,12 +64,11 @@
 
     private async void ClearFields()
     {
-        string message = "";
         showAlert = true;
         if (string.IsNullOrEmpty(product.Name) && product.Price == 0)
         {
-            alertMessage = "Unsuccessful!";
-            severityValue = Severity.Error;
+            alertMessage = "Please fill the value.!";
+            severityValue = Severity.Info;
             await ShowAlert();
             return;
         }

@@ -106,7 +106,7 @@ code {
     position: fixed;
     top: 0;
     right: 0;
-    width: 100%;
+    width: 150%;
     display: flex;
     justify-content: flex-end;
     align-items: flex-start;
