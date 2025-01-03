@@ -1,18 +1,122 @@
 ﻿@page "/product"
 
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@using System.ComponentModel.DataAnnotations
+@inject IJSRuntime JS
+
 <PageTitle>Product</PageTitle>
 
 <h1>Product</h1>
 
 <p role="status">Total Products: @currentCount</p>
+@if (showAlert)
+{
+    <div id="overlay" class="overlay" style="@overlayStyle">
+        <MudAlert @ref="alertRef" Severity="@severityValue" Variant="Variant.Filled" Square="true" Class="@alertClass">@alertMessage</MudAlert>
+    </div>
+}
+<MudPaper Style="height: 100vh; overflow-y: auto; padding: 16px;">
+    <EditForm Model="@product" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-<button class="btn btn-primary" @onclick="IncrementCount">Create Product</button>
+        <MudTextField @bind-Value="product.Name" Label="Name" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentText="N" AdornmentColor="Color.Info" Required="true" />
+        <MudTextField @bind-Value="product.Price" Label="Price" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentText="P" AdornmentColor="Color.Info" Required="true" />
+        <MudDatePicker @bind-Date="product.ExpiryDate" Label="Expiry Date" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentText="ED" AdornmentColor="Color.Warning" Required="true" />
+
+        <MudButton Type="Submit" Variant="Variant.Filled" OnClick="ClearFields" Color="Color.Primary">Create Product</MudButton>
+    </EditForm>
+</MudPaper>
 
 @code {
+    private ProductModel product = new ProductModel();
     private int currentCount = 0;
+    private bool showAlert = false;
+    private string alertMessage = string.Empty;
+    private Severity severityValue;
+    private string overlayStyle = "display: none";
+
+    // EditContext for form validation
+    private EditContext? editContext;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(product);
+    }
 
     private void IncrementCount()
     {
         currentCount++;
     }
+
+    private async void HandleValidSubmit()
+    {
+        // Handle the logic after valid form submission
+        Console.WriteLine("Product Created: " + product.Name);
+        IncrementCount(); // Increment count when product is successfully created
+        ClearFields(); // Clear fields after successful submission
+        alertMessage = "Product created successfully!";
+        showAlert = true; // Show success alert
+        severityValue = Severity.Success;
+        await ShowAlert();
+    }
+
+    private async void ClearFields()
+    {
+        string message = "";
+        showAlert = true;
+        if (string.IsNullOrEmpty(product.Name) && product.Price == 0)
+        {
+            alertMessage = "Unsuccessful!";
+            severityValue = Severity.Error;
+            await ShowAlert();
+            return;
+        }
+
+        product = new ProductModel();
+        editContext = new EditContext(product);
+        severityValue = Severity.Success;
+        IncrementCount();
+        alertMessage = "Product created successfully!";
+        await ShowAlert();
+    }
+
+    private string alertClass = string.Empty;
+    private MudAlert alertRef;
+
+    private async Task ShowAlert()
+    {
+        // Show the overlay and apply the slide-in-right animation
+        overlayStyle = "display: flex"; // Show the overlay
+        alertClass = "my-2 slide-in-right"; // Apply the slide-in-right animation class
+        StateHasChanged(); // Force re-render to apply the class immediately
+
+        // Wait for 0.5 seconds (the duration of the slide-in animation)
+        await Task.Delay(1000);
+
+        alertClass = "my-2 fade-out"; // Apply fade-out animation
+        StateHasChanged(); // Force re-render to apply the class immediately
+
+        await Task.Delay(500);
+
+        // Hide the overlay after the animation is done
+        overlayStyle = "display: none"; // Hide the overlay
+        alertClass = string.Empty; // Reset the animation class
+        StateHasChanged(); // Force re-render to hide the alert
+    }
+
+    public class ProductModel
+    {
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Price is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than zero")]
+        public decimal Price { get; set; }
+
+        [Required(ErrorMessage = "Expiry Date is required")]
+        public DateTime? ExpiryDate { get; set; }
+    }
 }
+
